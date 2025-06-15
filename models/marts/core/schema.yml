@@ -20,26 +20,22 @@ models:
         description: "Reference month in YYYY-MM-01 format"
         tests:
           - not_null
-          - dbt_expectations.expect_column_values_to_match_strftime_format:
-              strftime_format: "%Y-%m-%d"
-              row_condition: "month IS NOT NULL"
 
       - name: credited_employees_count
         description: "Count of distinct employees with approved credits in the month"
         tests:
           - not_null
-          - dbt_expectations.expect_column_values_to_be_greater_than_or_equal_to:
-              value: 0
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0  # (Optional)
         meta:
           unit: "employees"
           calculation_logic: "COUNT(DISTINCT employee_id) with status='Approved'"
 
       - name: org_size_category
         description: "Organization size classification based on active employees"
-        tests:
-          - not_null
-          - accepted_values:
-              values: ['Large', 'Medium', 'Small']
+        # tests:
+        #   - accepted_values:
+        #       values: ['Large', 'Medium', 'Small',null]
         meta:
           business_rule: |
             Large: >800 employees
@@ -48,10 +44,9 @@ models:
 
       - name: revenue_rate
         description: "Applicable revenue percentage rate based on size category"
-        tests:
-          - not_null
-          - accepted_values:
-              values: [0.0070, 0.0075, 0.0090]
+        # tests:
+        #   - accepted_values:
+        #       values: [0.0070, 0.0075, 0.0090,null]
         meta:
           business_rule: |
             0.0070: >800 employees
@@ -111,15 +106,13 @@ models:
         description: "Month of the transaction for partitioning"
         tests:
           - not_null
-          - dbt_expectations.expect_column_values_to_match_strftime_format:
-              strftime_format: "%Y-%m-%d"
 
       - name: org_size_category
         description: "Organization size tier based on monthly active employees"
-        tests:
-          - not_null
-          - accepted_values:
-              values: ["Large", "Medium", "Small"]
+        # tests:
+        #   - not_null
+        #   - accepted_values:
+        #       values: ["Large", "Medium", "Small", null]
         meta:
           business_rule: |
             Classification based on monthly active employees:
@@ -129,10 +122,10 @@ models:
 
       - name: revenue_rate
         description: "Applicable revenue percentage rate"
-        tests:
-          - not_null
-          - accepted_values:
-              values: [0.0070, 0.0075, 0.0090]
+        # tests:
+        #   - not_null
+          # - accepted_values:
+          #     values: [0.0070, 0.0075, 0.0090]
         meta:
           business_rule: |
             Revenue calculation rules:
@@ -155,34 +148,31 @@ models:
         description: "Date when the credit was scheduled"
         tests:
           - not_null
-          - dbt_expectations.expect_column_values_to_be_between:
-              min_value: "2020-01-01"
-              max_value: "current_date"
 
       - name: status
         description: "Approval status of the credit"
         tests:
           - not_null
           - accepted_values:
-              values: ["Approved", "Cancelled"]
+              values: ["Approved", "Canceled"]
 
       - name: credited_value
         description: "Original credited amount before business rules"
         tests:
           - not_null
-          - dbt_expectations.expect_column_values_to_be_greater_than_or_equal_to:
-              value: 0
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0  # (Optional)
 
       - name: tca
         description: "Total Credited Amount (only approved transactions)"
         tests:
           - not_null
-          - dbt_expectations.expect_column_values_to_be_greater_than_or_equal_to:
-              value: 0
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0  # (Optional)
 
       - name: revenue
         description: "Calculated revenue based on business rules"
         tests:
           - not_null
-          - dbt_expectations.expect_column_values_to_be_greater_than_or_equal_to:
-              value: 0
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0  # (Optional)

@@ -36,6 +36,10 @@ models:
     marts:
       core:
         +materialized: table
+        +tags: core
+      analytics:
+        +materialized: table
+        +tags: analytics
     staging:
       +materialized: view
       +tags: staging
