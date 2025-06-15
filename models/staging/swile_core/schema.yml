@@ -1,0 +1,51 @@
+# models/staging/schema.yml
+version: 2
+
+models:
+  - name: stg_order_credit_item
+    description: "Staging table for order credit items"
+    columns:
+      - name: order_credit_item_id
+        description: "Unique credit item identifier"
+        tests:
+          - not_null
+          - unique
+
+      - name: status
+        description: "Order approval status"
+        tests:
+          - accepted_values:
+              values: ['Approved', 'Canceled']
+              
+      - name: credited_value
+        description: "Monetary value credited for this item"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0  # (Optional)
+
+  - name: stg_employee
+    description: "Staging table for employee data"
+    columns:
+      - name: employee_id
+        description: "Unique employee identifier"
+        tests:
+          - not_null
+          - unique
+
+  - name: stg_wallet
+    description: "Staging table for wallet types"
+    columns:
+      - name: wallet_id
+        description: "Unique wallet identifier"
+        tests:
+          - not_null
+          - unique
+
+  - name: stg_organization
+    description: "Staging table for organizations"
+    columns:
+      - name: organization_id
+        description: "Unique organization identifier"
+        tests:
+          - not_null
+          - unique

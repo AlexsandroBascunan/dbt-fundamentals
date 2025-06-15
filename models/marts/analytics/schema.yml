@@ -1,0 +1,44 @@
+version: 2
+
+models:
+  - name: top_customers_by_tca
+    description: "The top 3 corporate customers by TCA per month"
+    columns:
+      - name: organization_id
+        tests:
+          - not_null
+
+      - name: total_credited_amount
+        tests:
+          - not_null
+
+  - name: revenue_growth_monthly
+    description: "The month-over-month revenue growth rate for Swile"
+    columns:
+      - name: growth_rate_pct
+        description: "Percentage change from previous month"
+        tests:
+          - not_null
+
+  - name: wallet_usage_analysis
+    description: "The most used wallets in number of approved orders and their TCA per month"
+    columns:
+      - name: wallet_id
+
+  - name: industry_ranking
+    description: "The top industries by number of organizations"
+    columns:
+      - name: industry
+        tests:
+          - not_null
+
+  - name: top_customers_by_revenue
+    description: "Top 3 corporate customers by Revenue per month in the last 3 months"
+    columns:
+      - name: organization_id
+        tests:
+          - not_null
+
+      - name: total_revenue
+        tests:
+          - not_null

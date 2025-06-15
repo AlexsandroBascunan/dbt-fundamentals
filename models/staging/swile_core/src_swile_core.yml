@@ -1,0 +1,32 @@
+# models/sources.yml
+version: 2
+
+sources:
+  - name: swile_core_raw
+    description: "Raw data layer of Swile's product"
+    schema: analytics_dev
+    tables:
+      - name: order_credit_item
+        description: "Table with orders from our users, each line represents an order that will or not be credited to an employee"
+        columns:
+          - name: ORDER_CREDIT_ITEM_ID
+            description: "Unique identifier for credit item"
+          - name: STATUS
+            description: "Order status (Approved/Canceled)"
+      - name: employee
+        description: "Table with information about employees"
+        columns:
+          - name: ID_EMPLOYEE
+            description: "Unique employee identifier"
+      - name: wallet
+        description: "Table with wallets that can be filled in the order"
+        columns:
+          - name: WALLET_ID
+            description: "Unique wallet identifier"
+      - name: organization
+        description: "Table with information about the corporates"
+        columns:
+          - name: ORGANIZATION_ID
+            description: "Unique organization identifier"
+          - name: ORGANIZATION_INDUSTRY
+            description: "Industry sector of the organization"

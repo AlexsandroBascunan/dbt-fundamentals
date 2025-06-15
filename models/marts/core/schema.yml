@@ -1,0 +1,178 @@
+# models/marts/core/schema_facts.yml
+version: 2
+
+models:
+  - name: int_monthly_org_metrics
+    description: "Intermediate table calculating monthly organization metrics including employee counts and revenue classifications"
+    config:
+      materialized: table
+    
+    columns:
+      - name: organization_id
+        description: "Unique identifier for the organization"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_organization')
+              field: organization_id
+
+      - name: month
+        description: "Reference month in YYYY-MM-01 format"
+        tests:
+          - not_null
+
+      - name: credited_employees_count
+        description: "Count of distinct employees with approved credits in the month"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0  # (Optional)
+        meta:
+          unit: "employees"
+          calculation_logic: "COUNT(DISTINCT employee_id) with status='Approved'"
+
+      - name: org_size_category
+        description: "Organization size classification based on active employees"
+        # tests:
+        #   - accepted_values:
+        #       values: ['Large', 'Medium', 'Small',null]
+        meta:
+          business_rule: |
+            Large: >800 employees
+            Medium: 101-800 employees  
+            Small: ≤100 employees
+
+      - name: revenue_rate
+        description: "Applicable revenue percentage rate based on size category"
+        # tests:
+        #   - accepted_values:
+        #       values: [0.0070, 0.0075, 0.0090,null]
+        meta:
+          business_rule: |
+            0.0070: >800 employees
+            0.0075: 101-800 employees  
+            0.0090: ≤100 employees
+
+  - name: fct_credits
+    description: "Core fact table tracking all credit transactions with calculated business metrics"
+    meta:
+      business_owner: "finance@swile.com"
+      data_steward: "analytics-engineering@swile.com"
+      refresh_schedule: "Daily at 2:00 AM UTC"
+      sla: "T+1 hour after source data arrival"
+      pii: false
+      classification: "Internal"
+      business_process: "Employee Benefits Allocation"
+
+    columns:
+      - name: order_credit_item_id
+        description: "Unique identifier for each credit item"
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('stg_order_credit_item')
+              field: order_credit_item_id
+
+      - name: order_credit_id
+        description: "Parent order identifier grouping multiple items"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_order_credit_item')
+              field: order_credit_id
+
+      - name: employee_id
+        description: "Employee receiving the credit"
+        tests:
+          - not_null
+
+      - name: organization_id
+        description: "Organization to which the employee belongs"
+        tests:
+          - not_null
+
+      - name: organization_name
+        description: "Legal name of the organization"
+        tests:
+          - not_null
+
+      - name: industry
+        description: "Primary industry classification of the organization"
+        tests:
+          - not_null
+
+      - name: month
+        description: "Month of the transaction for partitioning"
+        tests:
+          - not_null
+
+      - name: org_size_category
+        description: "Organization size tier based on monthly active employees"
+        # tests:
+        #   - not_null
+        #   - accepted_values:
+        #       values: ["Large", "Medium", "Small", null]
+        meta:
+          business_rule: |
+            Classification based on monthly active employees:
+            - Large: >800 employees
+            - Medium: 101-800 employees
+            - Small: ≤100 employees
+
+      - name: revenue_rate
+        description: "Applicable revenue percentage rate"
+        # tests:
+        #   - not_null
+          # - accepted_values:
+          #     values: [0.0070, 0.0075, 0.0090]
+        meta:
+          business_rule: |
+            Revenue calculation rules:
+            - Large orgs (>800 employees): 0.70%
+            - Medium orgs (101-800): 0.75%
+            - Small orgs (≤100): 0.90%
+          calculation_example: "R$1000 TCA × 0.0075 = R$7.50 revenue"
+
+      - name: wallet_id
+        description: "Type of wallet receiving the credit"
+        tests:
+          - not_null
+
+      - name: wallet_name
+        description: "Name of the wallet product"
+        tests:
+          - not_null
+
+      - name: schedule_date
+        description: "Date when the credit was scheduled"
+        tests:
+          - not_null
+
+      - name: status
+        description: "Approval status of the credit"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["Approved", "Canceled"]
+
+      - name: credited_value
+        description: "Original credited amount before business rules"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0  # (Optional)
+
+      - name: tca
+        description: "Total Credited Amount (only approved transactions)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0  # (Optional)
+
+      - name: revenue
+        description: "Calculated revenue based on business rules"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0  # (Optional)
